@@ -7,8 +7,8 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	// 部署后把这里改成你的正式网址（用于生成 RSS、站点地图、分享链接）
-	// 例如：'https://你的域名.com' 或 Vercel 给的 'https://xxx.vercel.app'
-	site: 'https://example.com',
+	// 以后绑定了自己的域名，把这里换成 'https://你的域名.com' 即可
+	site: 'https://vincentblog-five.vercel.app',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
