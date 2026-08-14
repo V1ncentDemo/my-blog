@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成长的底层逻辑 · 学习笔记</title>
+<meta name="description" content="从一份成长分享中提炼的知识地图：成长的定义、底层逻辑、核心要素与高频问题的思维模型。">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2b27; --sub:#55655f; --line:#e4ded3;
+    --emerald:#0f766e; --emerald-2:#14b8a6; --amber:#d97706; --amber-2:#f59e0b;
+    --paper:#faf7f0; --card:#ffffff;
+  }
+  *{ -webkit-font-smoothing:antialiased; }
+  html{ scroll-behavior:smooth; }
+  body{ font-family:'Noto Sans SC',sans-serif; color:var(--ink); background:var(--paper); overflow-x:hidden; }
+  .serif{ font-family:'Noto Serif SC',serif; }
+  .mtxt{ font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; line-height:1; }
+  ::selection{ background:#0f766e; color:#fff; }
+
+  /* background texture */
+  .grain{ position:fixed; inset:0; z-index:-2; background:
+      radial-gradient(1200px 600px at 12% -5%, #d6f2ec 0%, transparent 55%),
+      radial-gradient(1000px 700px at 100% 0%, #fdeccb 0%, transparent 50%),
+      radial-gradient(900px 900px at 50% 120%, #e8f3ea 0%, transparent 60%),
+      var(--paper); }
+  .noise{ position:fixed; inset:0; z-index:-1; opacity:.035; pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:22px;
+      box-shadow:0 1px 2px rgba(28,43,39,.04), 0 18px 40px -28px rgba(28,43,39,.35); }
+  .chip{ display:inline-flex; align-items:center; gap:.4rem; font-size:.72rem; letter-spacing:.12em;
+      font-weight:700; text-transform:uppercase; padding:.35rem .7rem; border-radius:999px; }
+
+  .js .reveal{ opacity:0; transform:translateY(26px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+  .js .reveal.in{ opacity:1; transform:none; }
+
+  .kicker{ font-size:.78rem; letter-spacing:.32em; font-weight:700; color:var(--emerald); text-transform:uppercase; }
+  a.navlink{ position:relative; }
+  a.navlink::after{ content:''; position:absolute; left:0; bottom:-4px; width:0; height:2px; background:var(--emerald-2); transition:width .3s; }
+  a.navlink:hover::after{ width:100%; }
+
+  .quote-mark{ font-family:'Noto Serif SC',serif; font-size:5rem; line-height:.4; color:var(--emerald-2); opacity:.35; }
+
+  /* ring diagram */
+  .ring{ border-radius:999px; display:grid; place-items:center; text-align:center; }
+  .hoverable{ transition:transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s; }
+  .hoverable:hover{ transform:translateY(-6px); box-shadow:0 26px 50px -28px rgba(15,118,110,.5); }
+
+  .marquee-track{ display:flex; gap:1rem; animation:scrollx 34s linear infinite; }
+  @keyframes scrollx{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  details.qa summary{ list-style:none; cursor:pointer; }
+  details.qa summary::-webkit-details-marker{ display:none; }
+  details.qa .arw{ transition:transform .3s; }
+  details.qa[open] .arw{ transform:rotate(45deg); }
+
+  .progress-bar{ position:fixed; top:0; left:0; height:3px; z-index:60; width:0%;
+      background:linear-gradient(90deg,var(--emerald),var(--emerald-2),var(--amber-2)); }
+</style>
+</head>
+<body>
+<div class="grain"></div><div class="noise"></div>
+<div class="progress-bar" id="progress"></div>
+
+<!-- NAV -->
+<header class="sticky top-0 z-50 backdrop-blur-md bg-[#faf7f0]/80 border-b border-[var(--line)]">
+  <nav class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2 font-black tracking-tight">
+      <span class="mtxt text-[var(--emerald)]" style="font-size:26px">psychology</span>
+      <span class="text-[15px]">成长的底层逻辑</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-[13.5px] text-[var(--sub)] font-medium">
+      <a href="#define" class="navlink">定义</a>
+      <a href="#loop" class="navlink">核心循环</a>
+      <a href="#brain" class="navlink">底层逻辑</a>
+      <a href="#elements" class="navlink">四要素</a>
+      <a href="#mindset" class="navlink">思维模式</a>
+      <a href="#faq" class="navlink">高频问题</a>
+      <a href="#books" class="navlink">书单</a>
+    </div>
+    <a href="#loop" class="text-[13px] font-bold text-white bg-[var(--emerald)] hover:bg-[#0b5e57] transition px-4 py-2 rounded-full">开始学习</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section id="top" class="relative max-w-6xl mx-auto px-5 pt-20 pb-16 md:pt-28 md:pb-24">
+  <div class="reveal">
+    <span class="kicker">A Learning Digest · 知识提炼</span>
+    <h1 class="serif font-black leading-[1.08] mt-5 text-4xl md:text-6xl">
+      成长，是一场<br><span class="text-[var(--emerald)]">看得见的</span>螺旋上升
+    </h1>
+    <p class="mt-6 max-w-2xl text-[var(--sub)] text-base md:text-lg leading-relaxed">
+      这份笔记把一场关于「个人成长」的分享，拆解成一张可复用的<strong class="text-[var(--ink)]">知识地图</strong>——
+      不讲故事，只留方法：成长的定义、驱动它的底层逻辑、让它持续的核心要素，以及那些绕不开的高频困惑。
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="#define" class="inline-flex items-center gap-2 bg-[var(--ink)] text-white text-sm font-semibold px-5 py-3 rounded-full hover:-translate-y-0.5 transition">
+        <span class="mtxt" style="font-size:18px">explore</span>进入知识地图
+      </a>
+      <a href="#books" class="inline-flex items-center gap-2 border border-[var(--line)] bg-white text-sm font-semibold px-5 py-3 rounded-full hover:-translate-y-0.5 transition">
+        <span class="mtxt text-[var(--amber)]" style="font-size:18px">menu_book</span>直达推荐书单
+      </a>
+    </div>
+  </div>
+
+  <!-- stat strip -->
+  <div class="reveal grid grid-cols-2 md:grid-cols-4 gap-4 mt-14">
+    <div class="card p-5">
+      <div class="serif text-3xl font-black text-[var(--emerald)]">3</div>
+      <div class="text-xs text-[var(--sub)] mt-1 leading-snug">重脑博弈<br>本能 · 情绪 · 理智</div>
+    </div>
+    <div class="card p-5">
+      <div class="serif text-3xl font-black text-[var(--emerald)]">4</div>
+      <div class="text-xs text-[var(--sub)] mt-1 leading-snug">成长要素<br>目标 · 专注 · 反馈 · 拉伸</div>
+    </div>
+    <div class="card p-5">
+      <div class="serif text-3xl font-black text-[var(--amber)]">37.8</div>
+      <div class="text-xs text-[var(--sub)] mt-1 leading-snug">1.01³⁶⁵ 的力量<br>每天进步一点点</div>
+    </div>
+    <div class="card p-5">
+      <div class="serif text-3xl font-black text-[var(--emerald)]">7+</div>
+      <div class="text-xs text-[var(--sub)] mt-1 leading-snug">高频问题<br>逐个拆掉焦虑</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEFINE -->
+<section id="define" class="max-w-6xl mx-auto px-5 py-16 md:py-24">
+  <div class="reveal max-w-3xl">
+    <span class="kicker">01 — 什么是成长</span>
+    <h2 class="serif font-black text-3xl md:text-4xl mt-4">先把「成长」说清楚</h2>
+    <p class="mt-4 text-[var(--sub)] leading-relaxed">
+      概念很抽象，大道理容易变成「正确的废话」。所以这里只保留两个最实用的定义视角。
+    </p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-6 mt-10">
+    <div class="reveal card p-8 hoverable">
+      <span class="chip bg-[#e6f4f1] text-[var(--emerald)]"><span class="mtxt" style="font-size:16px">public</span>普适视角</span>
+      <p class="serif text-xl md:text-2xl font-bold mt-5 leading-snug">
+        自身不断变得<span class="text-[var(--emerald)]">更好、更强、更成熟</span>的变化过程。
+      </p>
+      <p class="mt-4 text-sm text-[var(--sub)] leading-relaxed">
+        它是复杂、多样且长期的，涉及身体、智力、情感、社交等多个维度的发展，摆脱稚嫩、走向成熟。
+      </p>
+    </div>
+    <div class="reveal card p-8 hoverable" style="transition-delay:.08s">
+      <span class="chip bg-[#fdeccb] text-[var(--amber)]"><span class="mtxt" style="font-size:16px">work</span>工作视角</span>
+      <p class="serif text-xl md:text-2xl font-bold mt-5 leading-snug">
+        个人综合<span class="text-[var(--amber)]">能力</span>的提升。
+      </p>
+      <p class="mt-4 text-sm text-[var(--sub)] leading-relaxed">
+        而能力，直接与职级、绩效、薪酬这些现实回报息息相关。成长因此不只是自我感觉，而是可被兑现的价值。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CORE LOOP -->
+<section id="loop" class="relative py-16 md:py-24">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="reveal max-w-3xl">
+      <span class="kicker">02 — 核心循环</span>
+      <h2 class="serif font-black text-3xl md:text-4xl mt-4">成长没有捷径，只有一个会转的圈</h2>
+      <p class="mt-4 text-[var(--sub)] leading-relaxed">
+        真正的成长模型其实很朴素：<strong class="text-[var(--ink)]">内省思考 → 坚持改变 → 反馈思考 → 再改变</strong>，
+        一直循环下去。它在时间上表现为螺旋式上升——每一圈都比上一圈更高一点。
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-8 mt-12 items-center">
+      <!-- spiral visual -->
+      <div class="reveal lg:col-span-2 flex justify-center">
+        <div class="relative w-[280px] h-[280px]">
+          <div class="ring hoverable absolute inset-0 border-2 border-dashed border-[var(--emerald)]/40" ></div>
+          <div class="ring hoverable absolute inset-[38px] bg-[#e6f4f1] border border-[var(--emerald)]/30">
+            <div>
+              <div class="ring hoverable absolute inset-[38px] bg-white border border-[var(--amber)]/40 flex-col">
+                <div class="ring absolute inset-[34px] bg-[var(--emerald)] text-white flex-col">
+                  <span class="mtxt" style="font-size:26px">bolt</span>
+                  <span class="text-xs font-bold mt-1">坚持</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="absolute top-1 left-1/2 -translate-x-1/2 text-xs font-bold text-[var(--emerald)]">实践</span>
+          <span class="absolute top-[58px] left-1/2 -translate-x-1/2 text-xs font-bold text-[var(--amber)]">学习</span>
+        </div>
+      </div>
+      <!-- steps -->
+      <div class="reveal lg:col-span-3 space-y-3">
+        <div class="card p-5 flex items-start gap-4 hoverable">
+          <span class="serif text-2xl font-black text-[var(--emerald)] w-8">思</span>
+          <div><h4 class="font-bold">内省思考</h4><p class="text-sm text-[var(--sub)] mt-1">看清自己现在的状态、痛点与目标，从「知道」出发。</p></div>
+        </div>
+        <div class="card p-5 flex items-start gap-4 hoverable" style="transition-delay:.05s">
+          <span class="serif text-2xl font-black text-[var(--emerald)] w-8">行</span>
+          <div><h4 class="font-bold">坚持改变</h4><p class="text-sm text-[var(--sub)] mt-1">先行动起来，哪怕方向模糊。行动会让目标越来越清晰。</p></div>
+        </div>
+        <div class="card p-5 flex items-start gap-4 hoverable" style="transition-delay:.1s">
+          <span class="serif text-2xl font-black text-[var(--emerald)] w-8">馈</span>
+          <div><h4 class="font-bold">反馈思考</h4><p class="text-sm text-[var(--sub)] mt-1">从结果里获得正反馈与成就感，也修正认知与方法。</p></div>
+        </div>
+        <div class="card p-5 flex items-start gap-4 hoverable" style="transition-delay:.15s">
+          <span class="serif text-2xl font-black text-[var(--amber)] w-8">环</span>
+          <div><h4 class="font-bold">形成正向循环</h4><p class="text-sm text-[var(--sub)] mt-1">正反馈驱动下一轮投入，循环自我强化，影响深远。</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal card p-7 md:p-9 mt-10 relative overflow-hidden">
+      <span class="quote-mark absolute top-4 left-6">”</span>
+      <p class="serif text-xl md:text-2xl font-bold leading-relaxed pl-10">穷则变，变则通，通则久。</p>
+      <p class="mt-3 pl-10 text-sm text-[var(--sub)]">
+        知是行之始，行是知之成。真正的成长不是懂多少道理，而是<strong class="text-[var(--ink)]">思考了多少、行动了多少、最终改变了多少</strong>。
+        别人的经验很难直接复制——不仅要知道，更要坚持做到，做到「知行合一」。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- BRAIN / BOTTOM LOGIC -->
+<section id="brain" class="max-w-6xl mx-auto px-5 py-16 md:py-24">
+  <div class="reveal max-w-3xl">
+    <span class="kicker">03 — 底层逻辑</span>
+    <h2 class="serif font-black text-3xl md:text-4xl mt-4">为什么改变这么难？先看懂你的大脑</h2>
+    <p class="mt-4 text-[var(--sub)] leading-relaxed">
+      沉迷游戏、刷短视频、遇事想逃——这些都不是「意志力差」，而是大脑的本能设计。理解它，才能对抗它。
+    </p>
+  </div>
+
+  <!-- three brains -->
+  <div class="grid md:grid-cols-3 gap-5 mt-10">
+    <div class="reveal card p-7 hoverable border-t-4" style="border-top-color:#ef4444">
+      <div class="flex items-center gap-3"><span class="mtxt text-[#ef4444]" style="font-size:30px">whatshot</span><h3 class="font-black text-lg">本能脑</h3></div>
+      <p class="text-xs font-bold text-[#ef4444] mt-2">最古老 · 最强大 · 反应最快</p>
+      <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">主管生存本能：趋易避难，追求即时满足与能量最小化。是「想逃、想玩」的源头。</p>
+    </div>
+    <div class="reveal card p-7 hoverable border-t-4" style="border-top-color:var(--amber-2); transition-delay:.08s">
+      <div class="flex items-center gap-3"><span class="mtxt text-[var(--amber)]" style="font-size:30px">mood</span><h3 class="font-black text-lg">情绪脑</h3></div>
+      <p class="text-xs font-bold text-[var(--amber)] mt-2">短视但很强大</p>
+      <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">要反馈、要快乐、要「玩玩玩」。让你在虚拟世界里快速获得多巴胺，也最容易上瘾。</p>
+    </div>
+    <div class="reveal card p-7 hoverable border-t-4" style="border-top-color:var(--emerald); transition-delay:.16s">
+      <div class="flex items-center gap-3"><span class="mtxt text-[var(--emerald)]" style="font-size:30px">psychology</span><h3 class="font-black text-lg">理智脑</h3></div>
+      <p class="text-xs font-bold text-[var(--emerald)] mt-2">有远见但很弱小</p>
+      <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">要努力、要「学学学」。它最年轻、力量最弱，需要被有意识地调用和训练。</p>
+    </div>
+  </div>
+
+  <!-- dopamine vs endorphin -->
+  <div class="grid md:grid-cols-2 gap-6 mt-8">
+    <div class="reveal card p-8">
+      <span class="chip bg-[#fde8e8] text-[#ef4444]">即时快乐</span>
+      <h3 class="serif text-2xl font-bold mt-4">多巴胺</h3>
+      <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">
+        打游戏、刷抖音时分泌，带来<strong class="text-[var(--ink)]">短暂快乐并形成瘾性</strong>。零成本、来得快，也去得快，还会不断拉高阈值。
+      </p>
+    </div>
+    <div class="reveal card p-8" style="transition-delay:.08s">
+      <span class="chip bg-[#e6f4f1] text-[var(--emerald)]">延迟满足</span>
+      <h3 class="serif text-2xl font-bold mt-4">内啡肽</h3>
+      <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">
+        在<strong class="text-[var(--ink)]">努力与一定痛苦之后</strong>分泌，作为大脑的奖励。考试、跑步、攻克难题带来的成就感，属于这一类——它才是高效成长会「上瘾」的秘密。
+      </p>
+    </div>
+  </div>
+
+  <div class="reveal mt-8 p-6 rounded-2xl bg-[var(--ink)] text-white/90">
+    <p class="text-sm md:text-base leading-relaxed">
+      <span class="mtxt align-middle text-[var(--emerald-2)]" style="font-size:20px">lightbulb</span>
+      <strong class="text-white">关键洞察：</strong>转折往往发生在「本能与理智达成一致」的时刻——当生存受到威胁、更大的欲望无法满足时，本能和理智会共同做出决策、明确目标，从而产生<strong class="text-[var(--emerald-2)]">强大的内驱力</strong>。想主动成长，就要学会人为地制造这种「一致」。
+    </p>
+  </div>
+</section>
+
+<!-- ELEMENTS + ZONES -->
+<section id="elements" class="relative py-16 md:py-24 bg-white/50 border-y border-[var(--line)]">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="reveal max-w-3xl">
+      <span class="kicker">04 — 让成长持续</span>
+      <h2 class="serif font-black text-3xl md:text-4xl mt-4">四个要素，一条「拉伸区」法则</h2>
+      <p class="mt-4 text-[var(--sub)] leading-relaxed">
+        想持续高效地成长，除了开始行动，还要长期待在<strong class="text-[var(--ink)]">拉伸区</strong>，并守住不劣化的底线。
+      </p>
+    </div>
+
+    <!-- 4 elements -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+      <div class="reveal card p-6 hoverable text-center">
+        <span class="mtxt text-[var(--emerald)]" style="font-size:34px">my_location</span>
+        <h4 class="font-black mt-2">目标</h4>
+        <p class="text-xs text-[var(--sub)] mt-1">具体清晰<br>而非泛泛模糊</p>
+      </div>
+      <div class="reveal card p-6 hoverable text-center" style="transition-delay:.06s">
+        <span class="mtxt text-[var(--emerald)]" style="font-size:34px">center_focus_strong</span>
+        <h4 class="font-black mt-2">专注</h4>
+        <p class="text-xs text-[var(--sub)] mt-1">极度投入 边界清晰<br>而非做A想B</p>
+      </div>
+      <div class="reveal card p-6 hoverable text-center" style="transition-delay:.12s">
+        <span class="mtxt text-[var(--emerald)]" style="font-size:34px">sync</span>
+        <h4 class="font-black mt-2">反馈</h4>
+        <p class="text-xs text-[var(--sub)] mt-1">及时有效<br>带来成就感</p>
+      </div>
+      <div class="reveal card p-6 hoverable text-center" style="transition-delay:.18s">
+        <span class="mtxt text-[var(--emerald)]" style="font-size:34px">fitness_center</span>
+        <h4 class="font-black mt-2">拉伸</h4>
+        <p class="text-xs text-[var(--sub)] mt-1">难易匹配<br>踮脚够得着</p>
+      </div>
+    </div>
+
+    <!-- zones -->
+    <div class="grid lg:grid-cols-2 gap-8 mt-10 items-center">
+      <div class="reveal flex justify-center">
+        <div class="relative w-[300px] h-[300px]">
+          <div class="ring absolute inset-0 bg-[#fde8e8] border border-[#ef4444]/30 items-start pt-4">
+            <span class="text-xs font-bold text-[#ef4444]">困难区 · 畏惧逃避</span>
+          </div>
+          <div class="ring absolute inset-[46px] bg-[#fdeccb] border border-[var(--amber)]/40 items-start pt-3">
+            <span class="text-xs font-bold text-[var(--amber)]">拉伸区 · 进步最快</span>
+          </div>
+          <div class="ring absolute inset-[100px] bg-[var(--emerald)] text-white flex-col">
+            <span class="mtxt" style="font-size:24px">weekend</span>
+            <span class="text-xs font-bold mt-1">舒适区</span>
+            <span class="text-[10px] opacity-80">无聊走神</span>
+          </div>
+        </div>
+      </div>
+      <div class="reveal space-y-4">
+        <p class="text-[var(--sub)] leading-relaxed">
+          成长最快的位置，是舒适区边缘的<strong class="text-[var(--amber)]">拉伸区</strong>：既有成就、又有挑战。
+        </p>
+        <ul class="space-y-3">
+          <li class="flex gap-3 items-start"><span class="mtxt text-[var(--emerald)] mt-0.5" style="font-size:20px">check_circle</span><span class="text-sm"><strong>别停在舒适区</strong>——安于现状会停滞不前、无聊走神。</span></li>
+          <li class="flex gap-3 items-start"><span class="mtxt text-[var(--emerald)] mt-0.5" style="font-size:20px">check_circle</span><span class="text-sm"><strong>别冲进困难区</strong>——步子太大会受挫放弃、因畏惧而逃避。</span></li>
+          <li class="flex gap-3 items-start"><span class="mtxt text-[var(--emerald)] mt-0.5" style="font-size:20px">check_circle</span><span class="text-sm"><strong>成长防劣化</strong>——人性会自然懈怠，需靠心理暗示与主动控制，在关键决策时加一道「审视」，防止悄悄滑回舒适区。</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MINDSET -->
+<section id="mindset" class="max-w-6xl mx-auto px-5 py-16 md:py-24">
+  <div class="reveal max-w-3xl">
+    <span class="kicker">05 — 思维模式</span>
+    <h2 class="serif font-black text-3xl md:text-4xl mt-4">同一件事，两种思维，天壤之别</h2>
+    <p class="mt-4 text-[var(--sub)] leading-relaxed">
+      思维模式（习惯）是长周期成长的关键变量。同一件事用不同思维面对，结果截然不同；多件事持续下来，差距更是巨大。
+    </p>
+  </div>
+
+  <div class="reveal card overflow-hidden mt-10">
+    <div class="grid grid-cols-[1.1fr_1fr_1fr] text-sm">
+      <div class="p-4 font-bold bg-[var(--ink)] text-white">面对…</div>
+      <div class="p-4 font-bold bg-[#5b6b64] text-white flex items-center gap-2"><span class="mtxt" style="font-size:18px">lock</span>固定型思维</div>
+      <div class="p-4 font-bold bg-[var(--emerald)] text-white flex items-center gap-2"><span class="mtxt" style="font-size:18px">trending_up</span>成长型思维</div>
+      <!-- rows -->
+      <div class="p-4 font-semibold border-t border-[var(--line)]">挑战</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--sub)] bg-[#faf7f0]/60">避免挑战</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--emerald)] font-medium">迎接挑战</div>
+
+      <div class="p-4 font-semibold border-t border-[var(--line)]">阻碍</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--sub)] bg-[#faf7f0]/60">自我保护 / 轻易放弃</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--emerald)] font-medium">坚持不懈</div>
+
+      <div class="p-4 font-semibold border-t border-[var(--line)]">努力</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--sub)] bg-[#faf7f0]/60">认为努力无用</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--emerald)] font-medium">熟能生巧，努力有用</div>
+
+      <div class="p-4 font-semibold border-t border-[var(--line)]">批评</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--sub)] bg-[#faf7f0]/60">当作负面反馈</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--emerald)] font-medium">从批评中学习</div>
+
+      <div class="p-4 font-semibold border-t border-[var(--line)]">他人的成功</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--sub)] bg-[#faf7f0]/60">感到威胁</div>
+      <div class="p-4 border-t border-[var(--line)] text-[var(--emerald)] font-medium">获得启发</div>
+
+      <div class="p-4 font-black border-t-2 border-[var(--ink)]">最终结果</div>
+      <div class="p-4 border-t-2 border-[var(--ink)] font-bold text-[#ef4444] bg-[#faf7f0]/60">停滞不前</div>
+      <div class="p-4 border-t-2 border-[var(--ink)] font-bold text-[var(--emerald)]">取得很高成就</div>
+    </div>
+  </div>
+
+  <!-- compound -->
+  <div class="grid lg:grid-cols-2 gap-8 mt-12 items-center">
+    <div class="reveal">
+      <span class="chip bg-[#fdeccb] text-[var(--amber)]">复利效应</span>
+      <h3 class="serif text-2xl md:text-3xl font-bold mt-4">日拱一卒，功不唐捐</h3>
+      <p class="mt-3 text-[var(--sub)] leading-relaxed">
+        数字未必严谨，但它把「坚持」的意义放大得很直观：每天多做一点或少做一点，一年后是完全不同的两个人。
+      </p>
+      <div class="mt-5 space-y-3">
+        <div class="flex items-center gap-4"><code class="serif font-black text-lg w-28">1.00³⁶⁵</code><div class="flex-1 h-3 rounded-full bg-[var(--line)]"></div><span class="font-bold w-16 text-right">= 1</span></div>
+        <div class="flex items-center gap-4"><code class="serif font-black text-lg w-28 text-[var(--emerald)]">1.01³⁶⁵</code><div class="flex-1 h-3 rounded-full bg-gradient-to-r from-[var(--emerald)] to-[var(--emerald-2)]"></div><span class="font-black w-16 text-right text-[var(--emerald)]">≈ 37.8</span></div>
+        <div class="flex items-center gap-4"><code class="serif font-black text-lg w-28 text-[#ef4444]">0.99³⁶⁵</code><div class="flex-1 h-3 rounded-full bg-[#fde8e8]"><div class="h-3 rounded-full bg-[#ef4444]" style="width:3%"></div></div><span class="font-bold w-16 text-right text-[#ef4444]">≈ 0.03</span></div>
+      </div>
+    </div>
+    <div class="reveal card p-6" style="transition-delay:.08s">
+      <h4 class="text-sm font-bold text-[var(--sub)] mb-3">一年后的差距</h4>
+      <div class="flex items-end justify-around h-52 gap-4">
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <span class="text-xs font-bold text-[#ef4444]">0.03</span>
+          <div class="w-full rounded-t-lg bg-[#ef4444]/80" style="height:4px"></div>
+          <span class="text-[11px] text-[var(--sub)]">每天退步</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <span class="text-xs font-bold text-[var(--sub)]">1</span>
+          <div class="w-full rounded-t-lg bg-[var(--sub)]/50" style="height:5px"></div>
+          <span class="text-[11px] text-[var(--sub)]">原地踏步</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <span class="text-xs font-black text-[var(--emerald)]">37.8</span>
+          <div class="w-full rounded-t-lg bg-gradient-to-t from-[var(--emerald)] to-[var(--emerald-2)]" style="height:190px"></div>
+          <span class="text-[11px] font-bold text-[var(--emerald)]">每天进步</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ / HIGH-FREQ PROBLEMS -->
+<section id="faq" class="relative py-16 md:py-24 bg-white/50 border-y border-[var(--line)]">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="reveal max-w-3xl">
+      <span class="kicker">06 — 高频问题</span>
+      <h2 class="serif font-black text-3xl md:text-4xl mt-4">那些绕不开的困惑，逐个拆解</h2>
+      <p class="mt-4 text-[var(--sub)] leading-relaxed">
+        成长路上的焦虑大多相似。这里用一批清晰的思维模型，把它们变成可以处理的问题。
+      </p>
+    </div>
+
+    <!-- featured trio -->
+    <div class="grid md:grid-cols-3 gap-5 mt-10">
+      <!-- 达克效应 -->
+      <div class="reveal card p-7 hoverable">
+        <span class="chip bg-[#e6f4f1] text-[var(--emerald)]">认知偏差</span>
+        <h3 class="font-black text-lg mt-4">达克效应</h3>
+        <p class="text-sm text-[var(--sub)] mt-2 leading-relaxed">最难的不是「行」，而是「知」——尤其是知道自己「不知道」。</p>
+        <div class="mt-4 h-24 relative">
+          <svg viewBox="0 0 240 90" class="w-full h-full">
+            <path d="M5,80 C25,10 45,8 60,55 C75,88 100,86 130,70 C175,45 205,30 235,18" fill="none" stroke="#0f766e" stroke-width="3"/>
+            <circle cx="52" cy="20" r="4" fill="#ef4444"/><text x="30" y="14" font-size="9" fill="#ef4444">愚昧山峰</text>
+            <circle cx="88" cy="82" r="4" fill="#d97706"/><text x="70" y="90" font-size="9" fill="#d97706">绝望之谷</text>
+            <text x="185" y="14" font-size="9" fill="#0f766e">开悟爬坡</text>
+          </svg>
+        </div>
+        <p class="text-xs text-[var(--sub)] leading-relaxed">先看清自己处在哪个阶段、有哪些优劣势，「看清自己」本身就能帮到成长。</p>
+      </div>
+      <!-- 四象限 -->
+      <div class="reveal card p-7 hoverable" style="transition-delay:.08s">
+        <span class="chip bg-[#fdeccb] text-[var(--amber)]">时间管理</span>
+        <h3 class="font-black text-lg mt-4">四象限法则</h3>
+        <p class="text-sm text-[var(--sub)] mt-2 leading-relaxed">按「重要 / 紧急」划分事情，<strong class="text-[var(--ink)]">重视「重要不紧急」</strong>的投入。</p>
+        <div class="grid grid-cols-2 gap-1.5 mt-4 text-[10px] font-bold">
+          <div class="rounded-lg p-2 bg-[var(--emerald)] text-white h-16 flex flex-col justify-between"><span>重要 · 不紧急</span><span class="opacity-80 font-normal">从容安排，多花精力 ★</span></div>
+          <div class="rounded-lg p-2 bg-[#ef4444] text-white h-16 flex flex-col justify-between"><span>重要 · 紧急</span><span class="opacity-80 font-normal">立即做，尽量减少</span></div>
+          <div class="rounded-lg p-2 bg-[var(--line)] h-16 flex flex-col justify-between"><span>不重要 · 不紧急</span><span class="font-normal">能不做就不做</span></div>
+          <div class="rounded-lg p-2 bg-[#fdeccb] h-16 flex flex-col justify-between"><span>不重要 · 紧急</span><span class="font-normal">授权 / 边缘时间做</span></div>
+        </div>
+        <p class="text-xs text-[var(--sub)] leading-relaxed mt-3">人无远虑，必有近忧；凡事预则立，不预则废。</p>
+      </div>
+      <!-- 影响圈 -->
+      <div class="reveal card p-7 hoverable" style="transition-delay:.16s">
+        <span class="chip bg-[#e6f4f1] text-[var(--emerald)]">压力焦虑</span>
+        <h3 class="font-black text-lg mt-4">影响圈 &gt; 关注圈</h3>
+        <p class="text-sm text-[var(--sub)] mt-2 leading-relaxed">痛苦的根源，是「对自己无能的愤怒」——欲望远大于能力。</p>
+        <div class="mt-4 flex justify-center h-24 relative items-center">
+          <div class="ring w-24 h-24 border-2 border-dashed border-[var(--sub)]/40 text-[9px] text-[var(--sub)] items-start pt-1">关注圈
+            <div class="ring w-16 h-16 bg-[var(--emerald)] text-white text-[10px] font-bold absolute">影响圈</div>
+          </div>
+        </div>
+        <p class="text-xs text-[var(--sub)] leading-relaxed">先向内求：把精力放到<strong class="text-[var(--emerald)]">可掌控的影响圈</strong>，接纳无法控制的，焦虑自然减少。</p>
+      </div>
+    </div>
+
+    <!-- accordion list -->
+    <div class="reveal grid md:grid-cols-2 gap-4 mt-6">
+      <details class="qa card p-6 group">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-bold flex items-center gap-2"><span class="mtxt text-[var(--amber)]" style="font-size:20px">event_repeat</span>35 岁危机怎么破？</span>
+          <span class="mtxt arw text-[var(--sub)]" style="font-size:20px">add</span>
+        </summary>
+        <div class="mt-3 text-sm text-[var(--sub)] leading-relaxed">
+          核心不是「35 岁」这个数字，而是<strong class="text-[var(--ink)]">个人的竞争力与不可替代性</strong>，本质上还是要成长、要尽快成长。推崇的路径是成为「一专多能」的 <strong class="text-[var(--emerald)]">T 型人才</strong>（纵向有专业深度，横向有跨界能力）。心态上：<strong>战略上藐视（长期乐观），战术上重视（短期悲观）</strong>。
+        </div>
+      </details>
+      <details class="qa card p-6">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-bold flex items-center gap-2"><span class="mtxt text-[var(--emerald)]" style="font-size:20px">balance</span>工作与生活如何平衡？</span>
+          <span class="mtxt arw text-[var(--sub)]" style="font-size:20px">add</span>
+        </summary>
+        <div class="mt-3 text-sm text-[var(--sub)] leading-relaxed">
+          人生是旅程，不同阶段有选择地分配时间精力，<strong class="text-[var(--ink)]">努力扮演好每一个角色，做好当下不留遗憾</strong>。但完美平衡很难——人生不如意十之八九，用「知足常乐、小满胜万全」来接纳不完美，调整预期与心态。
+        </div>
+      </details>
+      <details class="qa card p-6">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-bold flex items-center gap-2"><span class="mtxt text-[var(--emerald)]" style="font-size:20px">directions_run</span>运动健康如何坚持？</span>
+          <span class="mtxt arw text-[var(--sub)]" style="font-size:20px">add</span>
+        </summary>
+        <div class="mt-3 text-sm text-[var(--sub)] leading-relaxed">
+          先找到<strong class="text-[var(--ink)]">志同道合的人</strong>，建立相互监督、正向反馈的环境；量化指标不断提升带来内啡肽+多巴胺的双重快乐，逐渐形成良性瘾性和内在驱动。注意：<strong>克服急功近利，坚定「为健康」的初心</strong>，循序渐进，避免伤病。
+        </div>
+      </details>
+      <details class="qa card p-6">
+        <summary class="flex items-center justify-between gap-4">
+          <span class="font-bold flex items-center gap-2"><span class="mtxt text-[#ef4444]" style="font-size:20px">warning</span>坏习惯 / 成长劣化怎么办？</span>
+          <span class="mtxt arw text-[var(--sub)]" style="font-size:20px">add</span>
+        </summary>
+        <div class="mt-3 text-sm text-[var(--sub)] leading-relaxed">
+          劣化的本质是<strong class="text-[var(--ink)]">自控力下降</strong>，被本能接管。可借助<strong class="text-[var(--emerald)]">福格行为模型 B=MAP</strong>（行为 = 动机 × 能力 × 提示）来拆解：想戒掉一个坏习惯，就降低它的动机/能力/提示；同时<strong>建立另一个成长目标与正向循环</strong>（如用跑步转移注意力）去替代它。
+        </div>
+      </details>
+    </div>
+
+    <!-- team -->
+    <div class="reveal card p-8 mt-6 grid md:grid-cols-[1.4fr_1fr] gap-8 items-center">
+      <div>
+        <span class="chip bg-[#e6f4f1] text-[var(--emerald)]">团队合作</span>
+        <h3 class="serif text-2xl font-bold mt-4">长期合作的前提：共赢 + 信任</h3>
+        <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">
+          合作前先<strong class="text-[var(--ink)]">换位思考</strong>：对方和你达成目标后能得到什么。跨团队目标不一致才有合作空间，要主动发现共赢点、把创造的价值尽量<strong>定量</strong>以对齐 ROI 与优先级，最后做好<strong>及时反馈与利益共享</strong>。
+        </p>
+        <p class="text-sm text-[var(--sub)] mt-3 leading-relaxed">
+          而一切良好合作的基础是<strong class="text-[var(--emerald)]">信任</strong>：善意假设、恩怨分明，做「简单善良但有原则底线的复读机」。
+        </p>
+      </div>
+      <div class="space-y-2">
+        <div class="rounded-xl p-4 bg-[var(--emerald)] text-white text-center font-bold text-sm">建立信任</div>
+        <div class="flex justify-center"><span class="mtxt text-[var(--sub)]" style="font-size:20px">arrow_downward</span></div>
+        <div class="rounded-xl p-4 bg-[var(--emerald-2)] text-white text-center font-bold text-sm">共赢<span class="block text-[11px] font-normal opacity-90">利益共享 · 换位思考</span></div>
+        <div class="flex justify-center"><span class="mtxt text-[var(--sub)]" style="font-size:20px">arrow_downward</span></div>
+        <div class="rounded-xl p-4 bg-[var(--amber)] text-white text-center font-bold text-sm">创造价值</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTES MARQUEE -->
+<section class="py-14 overflow-hidden">
+  <div class="reveal max-w-6xl mx-auto px-5 mb-6">
+    <span class="kicker">金句 · 值得反复咀嚼</span>
+  </div>
+  <div class="relative">
+    <div class="marquee-track">
+      <div class="flex gap-4 shrink-0">
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">一个人想成长，什么时候都不晚。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4 text-[var(--emerald)]">一旦开始，无限可能。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">不仅要知道，更要坚持做到。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">先向内求，再向外求。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4 text-[var(--amber)]">日拱一卒，功不唐捐。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">有多大能力，办多大事。</span>
+      </div>
+      <div class="flex gap-4 shrink-0" aria-hidden="true">
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">一个人想成长，什么时候都不晚。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4 text-[var(--emerald)]">一旦开始，无限可能。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">不仅要知道，更要坚持做到。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">先向内求，再向外求。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4 text-[var(--amber)]">日拱一卒，功不唐捐。</span>
+        <span class="serif text-lg font-bold whitespace-nowrap card px-6 py-4">有多大能力，办多大事。</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKS -->
+<section id="books" class="max-w-6xl mx-auto px-5 py-16 md:py-24">
+  <div class="reveal max-w-3xl">
+    <span class="kicker">07 — 他山之石</span>
+    <h2 class="serif font-black text-3xl md:text-4xl mt-4">这些书，撑起了整套逻辑</h2>
+    <p class="mt-4 text-[var(--sub)] leading-relaxed">
+      笔记里的模型大多有源头。想深入，可以顺着这份书单往下挖。
+    </p>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-10">
+    <div class="reveal card p-6 hoverable">
+      <div class="h-28 rounded-xl bg-gradient-to-br from-[var(--emerald)] to-[var(--emerald-2)] flex items-center justify-center text-white mb-4"><span class="mtxt" style="font-size:40px">auto_awesome</span></div>
+      <h4 class="font-black">认知觉醒</h4>
+      <p class="text-xs text-[var(--sub)] mt-1">本笔记底层逻辑的核心来源</p>
+      <p class="text-xs text-[var(--sub)] mt-2 leading-relaxed">三重大脑、拉伸区、目标/专注/反馈/拉伸、成长防劣化。</p>
+    </div>
+    <div class="reveal card p-6 hoverable" style="transition-delay:.06s">
+      <div class="h-28 rounded-xl bg-gradient-to-br from-[var(--amber)] to-[var(--amber-2)] flex items-center justify-center text-white mb-4"><span class="mtxt" style="font-size:40px">workspace_premium</span></div>
+      <h4 class="font-black">高效能人士的7个习惯</h4>
+      <p class="text-xs text-[var(--sub)] mt-1">经典方法论</p>
+      <p class="text-xs text-[var(--sub)] mt-2 leading-relaxed">螺旋式上升、影响圈/关注圈、以终为始。</p>
+    </div>
+    <div class="reveal card p-6 hoverable" style="transition-delay:.12s">
+      <div class="h-28 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#22d3ee] flex items-center justify-center text-white mb-4"><span class="mtxt" style="font-size:40px">trending_up</span></div>
+      <h4 class="font-black">终身成长</h4>
+      <p class="text-xs text-[var(--sub)] mt-1">思维模式圣经</p>
+      <p class="text-xs text-[var(--sub)] mt-2 leading-relaxed">固定型思维 vs 成长型思维的系统阐述。</p>
+    </div>
+    <div class="reveal card p-6 hoverable" style="transition-delay:.18s">
+      <div class="h-28 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a855f7] flex items-center justify-center text-white mb-4"><span class="mtxt" style="font-size:40px">self_improvement</span></div>
+      <h4 class="font-black">自控力</h4>
+      <p class="text-xs text-[var(--sub)] mt-1">对抗劣化的工具箱</p>
+      <p class="text-xs text-[var(--sub)] mt-2 leading-relaxed">那又如何效应、补偿心态、意志力传染等。</p>
+    </div>
+  </div>
+
+  <!-- extra topics -->
+  <div class="reveal mt-8 card p-7">
+    <h4 class="font-bold flex items-center gap-2"><span class="mtxt text-[var(--emerald)]" style="font-size:20px">bookmark</span>可延伸的成长主题</h4>
+    <div class="flex flex-wrap gap-2 mt-4 text-sm">
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">福格行为模型 B=MAP</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">怎么扩展思维的边界</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">如何快乐高效地工作</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">做事、成长与晋升</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">如何面对不确定性</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">哲学思维入门</span>
+      <span class="chip bg-[#faf7f0] border border-[var(--line)] text-[var(--ink)] normal-case tracking-normal">聊聊三观 · 论烦恼</span>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="max-w-6xl mx-auto px-5 pb-20">
+  <div class="reveal rounded-[28px] p-10 md:p-14 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#0f766e,#134e4a);">
+    <span class="quote-mark absolute top-6 right-10 text-white/20">”</span>
+    <span class="kicker text-[var(--emerald-2)]">写在最后</span>
+    <h2 class="serif font-black text-2xl md:text-4xl mt-4 leading-snug">
+      成长因人而异，<br>没有固定通用的模式和捷径。
+    </h2>
+    <p class="mt-5 max-w-2xl text-white/80 leading-relaxed">
+      以上的经验、思考和他山之石，都只是「部分参考」。真正属于你的成长法门，只能在你自己的<strong class="text-white">思考与实践</strong>里长出来。
+      如果这份笔记能带来一点点共鸣或触动，就已经很值得了。
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="#top" class="inline-flex items-center gap-2 bg-white text-[var(--emerald)] font-bold text-sm px-5 py-3 rounded-full hover:-translate-y-0.5 transition"><span class="mtxt" style="font-size:18px">vertical_align_top</span>回到顶部</a>
+      <a href="#loop" class="inline-flex items-center gap-2 border border-white/40 font-semibold text-sm px-5 py-3 rounded-full hover:bg-white/10 transition">从核心循环再看一遍</a>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-[var(--line)] py-8">
+  <div class="max-w-6xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-[var(--sub)]">
+    <span>成长的底层逻辑 · 学习笔记 — 从一份成长分享中提炼的知识地图</span>
+    <span>仅用于个人学习整理 · 观点仅供参考</span>
+  </div>
+</footer>
+
+<script>
+  // reveal on load (guaranteed visible) with a gentle staggered fade; also catch late layout
+  const reveals=document.querySelectorAll('.reveal');
+  const revealAll=()=>reveals.forEach((el,i)=>{ setTimeout(()=>el.classList.add('in'), Math.min(i*40,600)); });
+  if(document.readyState!=='loading'){ requestAnimationFrame(revealAll); }
+  else document.addEventListener('DOMContentLoaded',()=>requestAnimationFrame(revealAll));
+  window.addEventListener('load',()=>reveals.forEach(el=>el.classList.add('in')));
+  // progress bar
+  const pb=document.getElementById('progress');
+  const onScroll=()=>{const h=document.documentElement;const s=h.scrollTop/(h.scrollHeight-h.clientHeight);pb.style.width=(s*100)+'%';};
+  document.addEventListener('scroll',onScroll,{passive:true});onScroll();
+</script>
+</body>
+</html>

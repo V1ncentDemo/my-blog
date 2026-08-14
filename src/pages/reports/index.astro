@@ -6,31 +6,70 @@ import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
 
-// 读取 public/reports 目录下的所有 .html 文件，自动生成列表。
-// 你只要把生成好的 html 拷进 public/reports/ 就会出现在这里。
+// 读取 public/reports 下的所有 .html 文件，按「子文件夹 = 分类」自动分组。
+// 用法：在 public/reports/ 里建一个分类文件夹（如「个人成长」），把 html 放进去即可。
+// 直接放在 public/reports/ 根目录（不在任何子文件夹里）的 html 会归到「其他」。
 const reportsDir = path.join(process.cwd(), 'public', 'reports');
 
-type Report = { file: string; title: string; mtime: number };
-let reports: Report[] = [];
+type Report = { url: string; title: string; mtime: number };
+type Group = { name: string; reports: Report[] };
+
+function readTitle(fullPath: string, fallback: string): string {
+	try {
+		const html = fs.readFileSync(fullPath, 'utf-8');
+		const m = html.match(/<title>([^<]*)<\/title>/i);
+		if (m && m[1].trim()) return m[1].trim();
+	} catch {}
+	return fallback;
+}
+
+function encPath(segments: string[]): string {
+	return segments.map((s) => encodeURIComponent(s)).join('/');
+}
+
+const groups: Group[] = [];
+const rootReports: Report[] = [];
 
 if (fs.existsSync(reportsDir)) {
-	reports = fs
-		.readdirSync(reportsDir)
-		.filter((f) => f.toLowerCase().endsWith('.html'))
-		.map((file) => {
-			const full = path.join(reportsDir, file);
+	for (const entry of fs.readdirSync(reportsDir, { withFileTypes: true })) {
+		if (entry.isDirectory()) {
+			// 一个子文件夹 = 一个分类
+			const dirPath = path.join(reportsDir, entry.name);
+			const reports: Report[] = fs
+				.readdirSync(dirPath)
+				.filter((f) => f.toLowerCase().endsWith('.html'))
+				.map((file) => {
+					const full = path.join(dirPath, file);
+					const stat = fs.statSync(full);
+					return {
+						url: `/reports/${encPath([entry.name, file])}`,
+						title: readTitle(full, file.replace(/\.html$/i, '')),
+						mtime: stat.mtimeMs,
+					};
+				})
+				.sort((a, b) => b.mtime - a.mtime);
+			if (reports.length > 0) groups.push({ name: entry.name, reports });
+		} else if (entry.name.toLowerCase().endsWith('.html')) {
+			// 根目录里散放的 html
+			const full = path.join(reportsDir, entry.name);
 			const stat = fs.statSync(full);
-			// 尝试从 html 里读 <title>，读不到就用文件名
-			let title = file.replace(/\.html$/i, '');
-			try {
-				const html = fs.readFileSync(full, 'utf-8');
-				const m = html.match(/<title>([^<]*)<\/title>/i);
-				if (m && m[1].trim()) title = m[1].trim();
-			} catch {}
-			return { file, title, mtime: stat.mtimeMs };
-		})
-		.sort((a, b) => b.mtime - a.mtime);
+			rootReports.push({
+				url: `/reports/${encPath([entry.name])}`,
+				title: readTitle(full, entry.name.replace(/\.html$/i, '')),
+				mtime: stat.mtimeMs,
+			});
+		}
+	}
 }
+
+// 按分类名排序；根目录散放的归到「其他」，排在最后
+groups.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+if (rootReports.length > 0) {
+	rootReports.sort((a, b) => b.mtime - a.mtime);
+	groups.push({ name: '其他', reports: rootReports });
+}
+
+const total = groups.reduce((n, g) => n + g.reports.length, 0);
 
 const dateFmt = new Intl.DateTimeFormat('zh-CN', {
 	year: 'numeric',
@@ -53,25 +92,30 @@ const dateFmt = new Intl.DateTimeFormat('zh-CN', {
 			</section>
 
 			{
-				reports.length === 0 ? (
+				total === 0 ? (
 					<p class="empty">
-						还没有报告。把生成好的 <code>.html</code> 文件放进
-						<code>public/reports/</code> 就会自动出现在这里。
+						还没有报告。在 <code>public/reports/</code> 下建一个分类文件夹，把生成好的
+						<code>.html</code> 放进去就会自动出现在这里。
 					</p>
 				) : (
-					<ul class="post-list">
-						{reports.map((r) => (
-							<li class="card">
-								<a href={`/reports/${r.file}`}>
-									<div class="card-top">
-										<span class="cat">报告</span>
-										<span class="meta">{dateFmt.format(new Date(r.mtime))}</span>
-									</div>
-									<span class="post-title">{r.title}</span>
-								</a>
-							</li>
-						))}
-					</ul>
+					groups.map((g) => (
+						<section class="group">
+							<h2 class="group-title">{g.name}</h2>
+							<ul class="post-list">
+								{g.reports.map((r) => (
+									<li class="card">
+										<a href={r.url}>
+											<div class="card-top">
+												<span class="cat">报告</span>
+												<span class="meta">{dateFmt.format(new Date(r.mtime))}</span>
+											</div>
+											<span class="post-title">{r.title}</span>
+										</a>
+									</li>
+								))}
+							</ul>
+						</section>
+					))
 				)
 			}
 		</main>
@@ -99,6 +143,16 @@ const dateFmt = new Intl.DateTimeFormat('zh-CN', {
 		border: 1px dashed rgba(var(--accent-soft), 1);
 		border-radius: var(--radius);
 		padding: 1.5rem;
+	}
+	.group {
+		margin-bottom: 2.5rem;
+	}
+	.group-title {
+		font-size: 1.3em;
+		color: var(--accent-dark);
+		margin: 0 0 1rem 0;
+		padding-bottom: 0.4rem;
+		border-bottom: 2px solid rgba(var(--accent-soft), 1);
 	}
 	.post-list {
 		list-style: none;
