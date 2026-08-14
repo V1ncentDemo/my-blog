@@ -14,8 +14,8 @@ const blog = defineCollection({
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
 			heroImage: z.optional(image()),
-			// 分类：diary（日记）/ notes（笔记）/ quick（随手记），不写默认随手记
-			category: z.enum(['diary', 'notes', 'quick']).default('quick'),
+			// 分类：weekly（周记）/ notes（笔记）/ quick（随手记），不写默认随手记
+			category: z.enum(['weekly', 'notes', 'quick']).default('quick'),
 		}),
 });
 

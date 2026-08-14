@@ -1,0 +1,159 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+
+// 读取 public/reports 目录下的所有 .html 文件，自动生成列表。
+// 你只要把生成好的 html 拷进 public/reports/ 就会出现在这里。
+const reportsDir = path.join(process.cwd(), 'public', 'reports');
+
+type Report = { file: string; title: string; mtime: number };
+let reports: Report[] = [];
+
+if (fs.existsSync(reportsDir)) {
+	reports = fs
+		.readdirSync(reportsDir)
+		.filter((f) => f.toLowerCase().endsWith('.html'))
+		.map((file) => {
+			const full = path.join(reportsDir, file);
+			const stat = fs.statSync(full);
+			// 尝试从 html 里读 <title>，读不到就用文件名
+			let title = file.replace(/\.html$/i, '');
+			try {
+				const html = fs.readFileSync(full, 'utf-8');
+				const m = html.match(/<title>([^<]*)<\/title>/i);
+				if (m && m[1].trim()) title = m[1].trim();
+			} catch {}
+			return { file, title, mtime: stat.mtimeMs };
+		})
+		.sort((a, b) => b.mtime - a.mtime);
+}
+
+const dateFmt = new Intl.DateTimeFormat('zh-CN', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`学习报告 · ${SITE_TITLE}`} description="Vincent 的学习报告合集" />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="intro">
+				<h1>学习报告</h1>
+				<p>这里是我做的一些学习报告，点开就能看。</p>
+			</section>
+
+			{
+				reports.length === 0 ? (
+					<p class="empty">
+						还没有报告。把生成好的 <code>.html</code> 文件放进
+						<code>public/reports/</code> 就会自动出现在这里。
+					</p>
+				) : (
+					<ul class="post-list">
+						{reports.map((r) => (
+							<li class="card">
+								<a href={`/reports/${r.file}`}>
+									<div class="card-top">
+										<span class="cat">报告</span>
+										<span class="meta">{dateFmt.format(new Date(r.mtime))}</span>
+									</div>
+									<span class="post-title">{r.title}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.intro {
+		margin-bottom: 2.5rem;
+	}
+	.intro h1 {
+		font-size: 2.3em;
+		margin-bottom: 0.3em;
+		color: var(--accent-dark);
+	}
+	.intro p {
+		color: rgb(var(--gray));
+		margin: 0;
+		font-size: 1.05em;
+	}
+	.empty {
+		color: rgb(var(--gray-dark));
+		background: var(--card-bg);
+		border: 1px dashed rgba(var(--accent-soft), 1);
+		border-radius: var(--radius);
+		padding: 1.5rem;
+	}
+	.post-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	.card {
+		background: var(--card-bg);
+		border: 1px solid rgba(var(--accent-soft), 0.9);
+		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.card:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 10px 24px rgba(47, 107, 143, 0.16);
+	}
+	.card a {
+		display: block;
+		padding: 1.1rem 1.4rem;
+		text-decoration: none;
+		color: rgb(var(--black));
+	}
+	.card-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem;
+		margin-bottom: 0.5rem;
+	}
+	.card:hover .post-title {
+		color: var(--accent-dark);
+	}
+	.cat {
+		font-size: 0.75em;
+		color: var(--accent-dark);
+		background: rgba(var(--accent-soft), 0.6);
+		border-radius: 999px;
+		padding: 0.2em 0.8em;
+		white-space: nowrap;
+	}
+	.post-title {
+		display: block;
+		font-size: 1.2em;
+		font-weight: 700;
+		line-height: 1.35;
+	}
+	.meta {
+		color: rgb(var(--gray));
+		font-size: 0.85em;
+		white-space: nowrap;
+	}
+</style>
