@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { CATEGORIES, SITE_TITLE, categoryLabel } from '../../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`全部记录 · ${SITE_TITLE}`} description="按分类浏览全部记录" />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>全部记录</h1>
+			<nav class="cat-nav">
+				<a href="#all">全部（{posts.length}）</a>
+				{
+					CATEGORIES.map((c) => {
+						const n = posts.filter((p) => p.data.category === c.key).length;
+						return <a href={`#${c.key}`}>{c.label}（{n}）</a>;
+					})
+				}
+			</nav>
+
+			<ul id="all" class="post-list">
+				{
+					posts.map((post) => (
+						<li>
+							<a href={`/blog/${post.id}/`}>
+								<span class="cat">{categoryLabel(post.data.category)}</span>
+								<span class="post-title">{post.data.title}</span>
+							</a>
+							<p class="meta">
+								<FormattedDate date={post.data.pubDate} />
+							</p>
+						</li>
+					))
+				}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.cat-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin: 0 0 2rem 0;
+	}
+	.cat-nav a {
+		font-size: 0.9em;
+		text-decoration: none;
+		color: rgb(var(--gray-dark));
+		background: rgba(var(--gray-light), 60%);
+		border-radius: 999px;
+		padding: 0.2em 0.9em;
+	}
+	.cat-nav a:hover {
+		color: var(--accent);
+	}
+	.post-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.post-list li {
+		padding: 1.2rem 0;
+		border-bottom: 1px solid rgb(var(--gray-light));
+	}
+	.post-list li:first-child {
+		border-top: 1px solid rgb(var(--gray-light));
+	}
+	.post-list a {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		text-decoration: none;
+		color: rgb(var(--black));
+	}
+	.post-list a:hover .post-title {
+		color: var(--accent);
+	}
+	.cat {
+		flex: none;
+		font-size: 0.75em;
+		color: var(--accent);
+		background: rgba(var(--gray-light), 60%);
+		border-radius: 999px;
+		padding: 0.1em 0.7em;
+		white-space: nowrap;
+	}
+	.post-title {
+		font-size: 1.2em;
+		font-weight: 700;
+	}
+	.meta {
+		margin: 0.4rem 0 0 0;
+		color: rgb(var(--gray));
+		font-size: 0.9em;
+	}
+</style>
