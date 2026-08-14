@@ -6,9 +6,9 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	// 部署后把这里改成你的正式网址（用于生成 RSS、站点地图、分享链接）
-	// 以后绑定了自己的域名，把这里换成 'https://你的域名.com' 即可
-	site: 'https://vincentblog-five.vercel.app',
+	// 正式网址（用于生成 RSS、站点地图、分享链接）
+	// 绑定的自有域名，apex 会 308 跳到带 www 的，所以正式地址用 www
+	site: 'https://www.vincentdemo.xyz',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
