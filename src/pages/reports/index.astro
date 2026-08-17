@@ -1,6 +1,7 @@
 ---
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
@@ -11,7 +12,7 @@ import { SITE_TITLE } from '../../consts';
 // 直接放在 public/reports/ 根目录（不在任何子文件夹里）的 html 会归到「其他」。
 const reportsDir = path.join(process.cwd(), 'public', 'reports');
 
-type Report = { url: string; title: string; mtime: number };
+type Report = { url: string; title: string; uploadTime: number };
 type Group = { name: string; reports: Report[] };
 
 function readTitle(fullPath: string, fallback: string): string {
@@ -21,6 +22,27 @@ function readTitle(fullPath: string, fallback: string): string {
 		if (m && m[1].trim()) return m[1].trim();
 	} catch {}
 	return fallback;
+}
+
+// 取「上传时间」= 文件在 git 里的首次提交时间（最贴合用户视角的「什么时候放到网站上」）。
+// 如果文件还没提交（比如本地还没 add/commit），就 fallback 到文件创建时间 mtime。
+function gitFirstCommitTime(fullPath: string): number | null {
+	try {
+		const rel = path.relative(process.cwd(), fullPath);
+		const out = execSync(`git log --follow --format=%ct -- "${rel}" 2>/dev/null | tail -1`, {
+			encoding: 'utf8',
+		}).trim();
+		if (!out) return null;
+		const ts = parseInt(out, 10);
+		return isNaN(ts) ? null : ts * 1000;
+	} catch {
+		return null;
+	}
+}
+
+function uploadTimeOf(fullPath: string): number {
+	const stat = fs.statSync(fullPath);
+	return gitFirstCommitTime(fullPath) ?? stat.mtimeMs;
 }
 
 function encPath(segments: string[]): string {
@@ -40,23 +62,21 @@ if (fs.existsSync(reportsDir)) {
 				.filter((f) => f.toLowerCase().endsWith('.html'))
 				.map((file) => {
 					const full = path.join(dirPath, file);
-					const stat = fs.statSync(full);
 					return {
 						url: `/reports/${encPath([entry.name, file])}`,
 						title: readTitle(full, file.replace(/\.html$/i, '')),
-						mtime: stat.mtimeMs,
+						uploadTime: uploadTimeOf(full),
 					};
 				})
-				.sort((a, b) => b.mtime - a.mtime);
+				.sort((a, b) => b.uploadTime - a.uploadTime);
 			if (reports.length > 0) groups.push({ name: entry.name, reports });
 		} else if (entry.name.toLowerCase().endsWith('.html')) {
 			// 根目录里散放的 html
 			const full = path.join(reportsDir, entry.name);
-			const stat = fs.statSync(full);
 			rootReports.push({
 				url: `/reports/${encPath([entry.name])}`,
 				title: readTitle(full, entry.name.replace(/\.html$/i, '')),
-				mtime: stat.mtimeMs,
+				uploadTime: uploadTimeOf(full),
 			});
 		}
 	}
@@ -65,7 +85,7 @@ if (fs.existsSync(reportsDir)) {
 // 按分类名排序；根目录散放的归到「其他」，排在最后
 groups.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
 if (rootReports.length > 0) {
-	rootReports.sort((a, b) => b.mtime - a.mtime);
+	rootReports.sort((a, b) => b.uploadTime - a.uploadTime);
 	groups.push({ name: '其他', reports: rootReports });
 }
 
@@ -107,7 +127,7 @@ const dateFmt = new Intl.DateTimeFormat('zh-CN', {
 										<a href={r.url}>
 											<div class="card-top">
 												<span class="cat">报告</span>
-												<span class="meta">{dateFmt.format(new Date(r.mtime))}</span>
+												<span class="meta">{dateFmt.format(new Date(r.uploadTime))}</span>
 											</div>
 											<span class="post-title">{r.title}</span>
 										</a>
