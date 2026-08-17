@@ -5,7 +5,30 @@ import HeaderLink from './HeaderLink.astro';
 
 <header>
 	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
+		<h2>
+			<a class="brand" href="/" aria-label={SITE_TITLE}>
+				<span class="brand-mark" aria-hidden="true">
+					<svg viewBox="0 0 64 64" role="img">
+						<defs>
+							<linearGradient id="brand-bg" x1="10" y1="6" x2="54" y2="58">
+								<stop offset="0" stop-color="#87c7df" />
+								<stop offset="1" stop-color="#2f6b8f" />
+							</linearGradient>
+						</defs>
+						<rect width="64" height="64" rx="18" fill="url(#brand-bg)" />
+						<path
+							d="M17.5 19.5h8.2l6.7 22.1 6.8-22.1h7.3L36.1 48h-8.3L17.5 19.5Z"
+							fill="#fff"
+						/>
+						<path
+							d="M48.8 13.2 50.9 19l5.9 2.1-5.9 2.1-2.1 5.9-2.1-5.9-5.9-2.1 5.9-2.1 2.1-5.8Z"
+							fill="#f6d58a"
+						/>
+					</svg>
+				</span>
+				<span class="brand-text">{SITE_TITLE}</span>
+			</a>
+		</h2>
 		<div class="internal-links">
 			<HeaderLink href="/">首页</HeaderLink>
 			<HeaderLink href="/blog">全部记录</HeaderLink>
@@ -31,11 +54,37 @@ import HeaderLink from './HeaderLink.astro';
 		font-size: 1.15em;
 	}
 
-	h2 a,
-	h2 a.active {
+	.brand,
+	.brand.active {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55em;
+		padding: 0.7em 0.6em 0.7em 0;
 		text-decoration: none;
 		color: var(--accent-dark);
 		font-weight: 700;
+		border-bottom: none;
+	}
+	.brand:hover {
+		color: var(--accent-dark);
+	}
+	.brand-mark {
+		display: inline-flex;
+		width: 2rem;
+		height: 2rem;
+		flex: none;
+		border-radius: 12px;
+		box-shadow: 0 8px 18px rgba(47, 107, 143, 0.22);
+	}
+	.brand-mark svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border-radius: inherit;
+	}
+	.brand-text {
+		white-space: nowrap;
+		line-height: 1;
 	}
 	nav {
 		display: flex;
@@ -67,6 +116,9 @@ import HeaderLink from './HeaderLink.astro';
 			flex-direction: column;
 			align-items: flex-start;
 			padding: 0.4em 0;
+		}
+		.brand {
+			padding: 0.35em 0.6em 0.2em 0;
 		}
 		nav a {
 			padding: 0.5em 0.6em;
