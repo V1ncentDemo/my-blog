@@ -14,6 +14,8 @@ const blog = defineCollection({
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
 			heroImage: z.optional(image()),
+			// 列表卡片缩略图与正文封面分开配置，避免缩略图在文章顶部重复出现。
+			thumbnail: z.optional(image()),
 			// 分类：weekly（周记）/ notes（笔记）/ quick（随手记），不写默认随手记
 			category: z.enum(['weekly', 'notes', 'quick']).default('quick'),
 		}),

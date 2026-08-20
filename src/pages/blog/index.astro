@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
@@ -35,13 +36,25 @@ const posts = (await getCollection('blog')).sort(
 					posts.map((post) => (
 						<li class="card">
 							<a href={`/blog/${post.id}/`}>
-								<div class="card-top">
-									<span class="cat">{categoryLabel(post.data.category)}</span>
-									<span class="meta">
-										<FormattedDate date={post.data.pubDate} />
-									</span>
+								<div class="card-content">
+									<div class="card-top">
+										<span class="cat">{categoryLabel(post.data.category)}</span>
+										<span class="meta">
+											<FormattedDate date={post.data.pubDate} />
+										</span>
+									</div>
+									<span class="post-title">{post.data.title}</span>
 								</div>
-								<span class="post-title">{post.data.title}</span>
+								{post.data.thumbnail && (
+									<Image
+										class="thumbnail"
+										src={post.data.thumbnail}
+										alt=""
+										width={200}
+										height={150}
+										loading="lazy"
+									/>
+								)}
 							</a>
 						</li>
 					))
@@ -93,10 +106,16 @@ const posts = (await getCollection('blog')).sort(
 		box-shadow: 0 10px 24px rgba(47, 107, 143, 0.16);
 	}
 	.card a {
-		display: block;
+		display: flex;
+		align-items: center;
+		gap: 1.1rem;
 		padding: 1.1rem 1.4rem;
 		text-decoration: none;
 		color: rgb(var(--black));
+	}
+	.card-content {
+		flex: 1;
+		min-width: 0;
 	}
 	.card-top {
 		display: flex;
@@ -126,5 +145,24 @@ const posts = (await getCollection('blog')).sort(
 		color: rgb(var(--gray));
 		font-size: 0.85em;
 		white-space: nowrap;
+	}
+	.thumbnail {
+		width: 96px;
+		height: 72px;
+		flex: 0 0 96px;
+		object-fit: cover;
+		border-radius: 10px;
+		box-shadow: 0 3px 10px rgba(47, 107, 143, 0.14);
+	}
+	@media (max-width: 520px) {
+		.card a {
+			gap: 0.75rem;
+			padding: 0.9rem 1rem;
+		}
+		.thumbnail {
+			width: 72px;
+			height: 72px;
+			flex-basis: 72px;
+		}
 	}
 </style>
